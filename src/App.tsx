@@ -285,12 +285,12 @@ export default function App() {
         ))}
       </div>
 
-      <main className="relative z-10 w-full max-w-2xl flex flex-col items-center gap-12">
+      <main className="relative z-10 w-full max-w-2xl flex flex-col items-center gap-6 sm:gap-12 py-8">
         <header className="text-center space-y-2">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-light tracking-widest uppercase text-purple-200/80 font-serif"
+            className="text-3xl sm:text-4xl md:text-5xl font-light tracking-widest uppercase text-purple-200/80 font-serif"
             id="void-title"
           >
             The Void
@@ -307,7 +307,7 @@ export default function App() {
         </header>
 
         {/* The Blackhole Visual */}
-        <div className="relative w-96 h-96 flex items-center justify-center scale-110 md:scale-125" id="blackhole-container">
+        <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center" id="blackhole-container">
           <motion.div 
             animate={{ 
               scale: [1, 1.1, 1],
@@ -330,7 +330,7 @@ export default function App() {
             }}
             className="absolute rounded-full w-[120%] h-[120%] border border-purple-900/10 blur-2xl"
           />
-          <div className={`w-56 h-56 bg-black rounded-full transition-shadow duration-1000 relative z-10 overflow-hidden flex items-center justify-center ${isConsuming ? 'shadow-[0_0_120px_40px_rgba(168,85,247,0.5)]' : 'shadow-[0_0_80px_25px_rgba(107,33,168,0.3)]'}`}>
+          <div className={`w-36 h-36 sm:w-44 sm:h-44 md:w-56 md:h-56 bg-black rounded-full transition-shadow duration-1000 relative z-10 overflow-hidden flex items-center justify-center ${isConsuming ? 'shadow-[0_0_80px_20px_rgba(168,85,247,0.5)] md:shadow-[0_0_120px_40px_rgba(168,85,247,0.5)]' : 'shadow-[0_0_40px_10px_rgba(107,33,168,0.3)] md:shadow-[0_0_80px_25px_rgba(107,33,168,0.3)]'}`}>
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/20 to-transparent pointer-events-none" />
             
             <AnimatePresence mode="wait">
@@ -478,7 +478,7 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 onAnimationComplete={() => onRemoveRant(r.id)}
-                className="absolute z-20 text-purple-200/90 text-sm whitespace-pre-wrap max-w-[180px] text-center pointer-events-none font-serif italic"
+                className="absolute z-20 text-purple-200/90 text-xs sm:text-sm whitespace-pre-wrap max-w-[140px] sm:max-w-[180px] text-center pointer-events-none font-serif italic"
                 style={{
                   top: '50%',
                   left: '50%',
@@ -500,7 +500,7 @@ export default function App() {
               value={rant}
               onChange={(e) => setRant(e.target.value)}
               placeholder="What weighs on your soul? Speak it here..."
-              className="w-full h-40 bg-zinc-900/40 border border-zinc-800 rounded-2xl p-6 text-purple-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 transition-all resize-none font-sans leading-relaxed backdrop-blur-sm"
+              className="relative w-full h-32 sm:h-40 bg-zinc-900/40 border border-zinc-800 rounded-2xl p-4 sm:p-6 text-purple-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 transition-all resize-none font-sans leading-relaxed backdrop-blur-sm"
               id="rant-textarea"
             />
             <div className="absolute bottom-4 right-4 flex items-center gap-2">
@@ -588,24 +588,26 @@ export default function App() {
         </div>
 
         {/* Void Feedback Message */}
-        <AnimatePresence>
-          {message && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="fixed bottom-12 text-sm font-serif italic text-purple-300/60 tracking-widest"
-              id="void-message"
-            >
-              {message}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+        <div className="h-8 flex items-center justify-center">
+          <AnimatePresence>
+            {message && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-xs sm:text-sm font-serif italic text-purple-300/60 tracking-widest text-center"
+                id="void-message"
+              >
+                {message}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-      <footer className="fixed bottom-4 left-4 text-[10px] text-zinc-700 font-mono uppercase tracking-[0.2em] pointer-events-none">
-        Consuming since 2026 • Silence is Gold
-      </footer>
+        <footer className="text-[9px] sm:text-[10px] text-zinc-700 font-mono uppercase tracking-[0.2em] pointer-events-none text-center pb-4">
+          Consuming since 2026 • Silence is Gold
+        </footer>
+      </main>
     </div>
   );
 }
