@@ -15,9 +15,15 @@
 body {
   background-color: var(--color-bg);
   color: #fff;
-  overflow: hidden;
   margin: 0;
   font-family: var(--font-sans);
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .atmosphere {
