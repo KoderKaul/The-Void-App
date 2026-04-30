@@ -1,0 +1,6 @@
+{
+  "name": "The Void",
+  "description": "A cathartic space to release your rants into a consuming black hole.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
