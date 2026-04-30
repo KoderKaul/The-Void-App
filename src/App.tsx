@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Trash2, Send, Info, Mic, MicOff, UserPlus, X } from 'lucide-react';
+import { Sparkles, Trash2, Send, Info, Mic, MicOff, ImagePlus, X, Droplets, Flame, Gavel } from 'lucide-react';
 
 interface RantItem {
   id: string;
@@ -24,6 +24,7 @@ export default function App() {
   const [message, setMessage] = useState<string | null>(null);
   const [selectedLang, setSelectedLang] = useState('en-US');
   const [isConsuming, setIsConsuming] = useState(false);
+  const [destructionMethod, setDestructionMethod] = useState<'burn' | 'flood' | 'hammer'>('burn');
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -55,7 +56,7 @@ export default function App() {
     if (!ctx) return;
     
     const noise = ctx.createBufferSource();
-    const bufferSize = ctx.sampleRate * 2;
+    const bufferSize = ctx.sampleRate * 1.8;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -63,73 +64,135 @@ export default function App() {
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.Q.value = 5;
-    filter.frequency.setValueAtTime(50, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(4000, ctx.currentTime + 0.2);
-    filter.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.8);
+    filter.Q.value = 8;
+    filter.frequency.setValueAtTime(40, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.3);
+    filter.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 1.7);
 
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
+    gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
 
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
 
     noise.start();
-    noise.stop(ctx.currentTime + 2.0);
+    noise.stop(ctx.currentTime + 1.8);
   };
 
-  const playThump = () => {
+  const playThump = (method: 'burn' | 'flood' | 'hammer' | 'rant' = 'rant') => {
     const ctx = audioContextRef.current;
     if (!ctx) return;
 
-    // Primary Sub-bass layer - Heavy and Low
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(100, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.8);
-    gain.gain.setValueAtTime(1.5, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    if (method === 'rant') {
+      // Sub-heavy impact
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(80, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.8);
+      gain.gain.setValueAtTime(1.8, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-    // Second Bass layer for "Punch"
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(60, ctx.currentTime);
-    osc2.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.4);
-    gain2.gain.setValueAtTime(0.8, ctx.currentTime);
-    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-
-    // Impact crackle layer - Louder and more distorted
-    const noise = ctx.createBufferSource();
-    const bufferSize = ctx.sampleRate * 0.3;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-    const noiseGain = ctx.createGain();
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.value = 800;
-    noiseGain.gain.setValueAtTime(0.5, ctx.currentTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
-
-    noise.buffer = buffer;
-    osc.start();
-    osc2.start();
-    noise.start();
-    osc.stop(ctx.currentTime + 1.0);
-    osc2.stop(ctx.currentTime + 0.5);
+      // Low rumble residue
+      const noise = ctx.createBufferSource();
+      const bSize = ctx.sampleRate * 1.0;
+      const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < bSize; i++) d[i] = Math.random() * 2 - 1;
+      noise.buffer = b;
+      const nGain = ctx.createGain();
+      const nFilter = ctx.createBiquadFilter();
+      nFilter.type = 'lowpass';
+      nFilter.frequency.value = 150;
+      nGain.gain.setValueAtTime(0.4, ctx.currentTime);
+      nGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      noise.connect(nFilter);
+      nFilter.connect(nGain);
+      nGain.connect(ctx.destination);
+      osc.start();
+      noise.start();
+    } else if (method === 'burn') {
+      // Intense combustion start
+      const fireNoise = ctx.createBufferSource();
+      const bSize = ctx.sampleRate * 2.5;
+      const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < bSize; i++) d[i] = Math.random() * 2 - 1;
+      fireNoise.buffer = b;
+      
+      const fireFilter = ctx.createBiquadFilter();
+      fireFilter.type = 'bandpass';
+      fireFilter.Q.value = 2;
+      fireFilter.frequency.setValueAtTime(100, ctx.currentTime);
+      fireFilter.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.5);
+      
+      const fireGain = ctx.createGain();
+      fireGain.gain.setValueAtTime(0, ctx.currentTime);
+      fireGain.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.4);
+      fireGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.2);
+      
+      fireNoise.connect(fireFilter);
+      fireFilter.connect(fireGain);
+      fireGain.connect(ctx.destination);
+      fireNoise.start(ctx.currentTime + 0.3);
+    } else if (method === 'flood') {
+      // Heavy water surge
+      const surge = ctx.createBufferSource();
+      const bSize = ctx.sampleRate * 2.5;
+      const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < bSize; i++) d[i] = Math.random() * 2 - 1;
+      surge.buffer = b;
+      
+      const sFilter = ctx.createBiquadFilter();
+      sFilter.type = 'lowpass';
+      sFilter.frequency.setValueAtTime(1000, ctx.currentTime);
+      sFilter.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 2);
+      
+      const sGain = ctx.createGain();
+      sGain.gain.setValueAtTime(0.5, ctx.currentTime);
+      sGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+      
+      surge.connect(sFilter);
+      sFilter.connect(sGain);
+      sGain.connect(ctx.destination);
+      surge.start();
+    } else if (method === 'hammer') {
+      // Heavy crunch + Metallic Ring
+      const crunch = ctx.createOscillator();
+      crunch.type = 'square';
+      crunch.frequency.setValueAtTime(80, ctx.currentTime);
+      crunch.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.1);
+      const cGain = ctx.createGain();
+      cGain.gain.setValueAtTime(1, ctx.currentTime);
+      cGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      crunch.connect(cGain);
+      cGain.connect(ctx.destination);
+      
+      const glass = ctx.createBufferSource();
+      const bSize = ctx.sampleRate * 1.5;
+      const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < bSize; i++) d[i] = Math.random() * 2 - 1;
+      glass.buffer = b;
+      const gFilter = ctx.createBiquadFilter();
+      gFilter.type = 'highpass';
+      gFilter.frequency.value = 4000;
+      const gGain = ctx.createGain();
+      gGain.gain.setValueAtTime(0.6, ctx.currentTime + 0.3);
+      gGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+      glass.connect(gFilter);
+      gFilter.connect(gGain);
+      gGain.connect(ctx.destination);
+      
+      crunch.start();
+      glass.start(ctx.currentTime + 0.3);
+    }
   };
 
   const toggleListening = () => {
@@ -211,24 +274,29 @@ export default function App() {
     setIsConsuming(true);
     setActiveRants((prev) => [...prev, newRant]);
     setRant('');
-    playWhoosh();
+    
+    if (!selectedImage) {
+      playWhoosh();
+    } else {
+      // For images, we play the descriptive sound immediately as the animation starts
+      playThump(destructionMethod);
+    }
 
     setTimeout(() => {
       setIsConsuming(false);
       setSelectedImage(null);
-      playThump();
-    }, 1200);
+      // Final impact follows whoosh/animation (1.8s)
+      playThump(selectedImage ? destructionMethod : 'rant');
+    }, 1800);
 
     // Show a message from the void after a short delay
     setTimeout(() => {
-      const messages = [
-        "The void has consumed your burden.",
-        "Your silence is now part of the stars.",
-        "Released into oblivion.",
-        "The darkness feels lighter now.",
-        "Whispered away.",
-      ];
-      setMessage(messages[Math.floor(Math.random() * messages.length)]);
+      const burnMessages = ["Charred into history.", "Reduced to ash.", "The heat has consumed it."];
+      const floodMessages = ["Swept away by the tides.", "Swallowed by the deep.", "Dissolved in the current."];
+      const hammerMessages = ["Shattered into silicon dust.", "Reduced to shards.", "Broken beyond repair."];
+      
+      const pool = destructionMethod === 'burn' ? burnMessages : destructionMethod === 'flood' ? floodMessages : hammerMessages;
+      setMessage(pool[Math.floor(Math.random() * pool.length)]);
       
       setTimeout(() => setMessage(null), 3000);
     }, 1000);
@@ -307,7 +375,12 @@ export default function App() {
         </header>
 
         {/* The Blackhole Visual */}
-        <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center" id="blackhole-container">
+        <motion.div 
+          animate={isConsuming ? { x: [0, -2, 2, -2, 2, 0], y: [0, 1, -1, 1, -1, 0] } : {}}
+          transition={{ duration: 0.2, repeat: isConsuming ? 5 : 0 }}
+          className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 flex items-center justify-center" 
+          id="blackhole-container"
+        >
           <motion.div 
             animate={{ 
               scale: [1, 1.1, 1],
@@ -342,13 +415,20 @@ export default function App() {
                   animate={{ 
                     opacity: isConsuming ? [1, 1, 0] : 1, 
                     scale: isConsuming ? [1, 1.05, 0.95] : 1,
+                    rotate: isConsuming && destructionMethod === 'flood' ? [0, 180, 1080] : 0,
+                    x: isConsuming && destructionMethod === 'hammer' ? [0, -4, 4, -4, 4, 0] : 0,
                     filter: isConsuming 
-                      ? "brightness(1.5) contrast(1.5) sepia(0.8) hue-rotate(-20deg) grayscale(0.2) blur(1px)" 
+                      ? destructionMethod === 'burn'
+                        ? "brightness(1.5) contrast(1.5) sepia(0.8) hue-rotate(-20deg) grayscale(0.2) blur(1px)"
+                        : destructionMethod === 'flood'
+                          ? "brightness(1.2) contrast(1.2) hue-rotate(180deg) saturate(2) blur(6px)"
+                          : "brightness(2) contrast(1.5) grayscale(1) blur(2px)"
                       : "brightness(1) contrast(1) grayscale(0) sepia(0) hue-rotate(0deg) blur(0px)" 
                   }}
                   transition={{ 
-                    duration: isConsuming ? 1.2 : 0.5,
-                    times: [0, 0.4, 1]
+                    duration: isConsuming ? 1.8 : 0.5,
+                    times: [0, 0.6, 1],
+                    x: { repeat: Infinity, duration: 0.1 }
                   }}
                 >
                   <img 
@@ -357,24 +437,93 @@ export default function App() {
                     className="w-full h-full object-cover opacity-80"
                   />
                   
+                  {/* Hammer Cracks */}
+                  {isConsuming && destructionMethod === 'hammer' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 1, 1] }}
+                      transition={{ delay: 0.3, duration: 0.1 }}
+                      className="absolute inset-0 z-20 pointer-events-none"
+                    >
+                      <svg viewBox="0 0 100 100" className="w-full h-full stroke-black/80 stroke-[0.5] fill-none">
+                        <path d="M50,50 L20,10 M50,50 L80,20 M50,50 L90,60 M50,50 L40,90 M50,50 L10,70" />
+                        <path d="M50,50 L30,40 L10,35 M50,50 L60,70 L75,90" />
+                      </svg>
+                    </motion.div>
+                  )}
+
+                  {/* Hammer Impact Flash */}
+                  {isConsuming && destructionMethod === 'hammer' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 0.2, delay: 0.3 }}
+                      className="absolute inset-0 bg-white z-40 mix-blend-overlay"
+                    />
+                  )}
+
+                  {/* Burn: Lighter Intro */}
+                  {isConsuming && destructionMethod === 'burn' && (
+                    <motion.div
+                      initial={{ y: 60, opacity: 0 }}
+                      animate={{ y: [60, 20, 20, 100], opacity: [0, 1, 1, 0] }}
+                      transition={{ duration: 1.5, times: [0, 0.2, 0.6, 1] }}
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30 w-8 h-12 bg-zinc-400 rounded-sm border border-zinc-500 shadow-lg flex flex-col items-center"
+                    >
+                      <div className="w-6 h-4 bg-zinc-300 rounded-t-sm -mt-2 group-flick" />
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: [0, 1.2, 1, 0] }}
+                        transition={{ delay: 0.3, duration: 0.8 }}
+                        className="w-4 h-6 bg-orange-500 blur-[2px] rounded-full absolute -top-6 animate-pulse"
+                      />
+                    </motion.div>
+                  )}
+
+                  {/* Flood: Swirl Intro */}
+                  {isConsuming && destructionMethod === 'flood' && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0, rotate: 0 }}
+                      animate={{ scale: [0, 1.2, 1.5], opacity: [0, 0.8, 0], rotate: 1080 }}
+                      transition={{ duration: 2.2, ease: "linear" }}
+                      className="absolute inset-0 z-30 border-8 border-blue-400/30 rounded-full border-t-blue-400/80 blur-[2px]"
+                    />
+                  )}
+
+                  {/* Hammer: Strike Intro */}
+                  {isConsuming && destructionMethod === 'hammer' && (
+                    <motion.div
+                      initial={{ y: -100, x: 100, rotate: -45, opacity: 0 }}
+                      animate={{ 
+                        y: [-100, 0, -20, 0, 100], 
+                        x: [100, 0, 20, 0, 150], 
+                        rotate: [-45, 0, -10, 0, 45],
+                        opacity: [0, 1, 1, 1, 0] 
+                      }}
+                      transition={{ duration: 1.2, times: [0, 0.3, 0.45, 0.6, 1] }}
+                      className="absolute top-1/4 right-1/4 z-30 pointer-events-none"
+                    >
+                      <div className="w-12 h-6 bg-zinc-600 rounded-sm border-2 border-zinc-700" />
+                      <div className="w-2 h-16 bg-amber-900 mx-auto -mt-1 rounded-b-sm border border-amber-950" />
+                    </motion.div>
+                  )}
+
                   {/* Intense Burning Effect (Paper Style) */}
-                  {isConsuming && (
+                  {isConsuming && destructionMethod === 'burn' && (
                     <div className="absolute inset-0 pointer-events-none">
-                      {/* The "Charred Edge" that eats the image */}
                       <motion.div 
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ 
-                          scale: [0, 2, 4],
-                          opacity: [0, 1, 1],
+                          scale: [0, 0, 2, 4],
+                          opacity: [0, 1, 1, 1],
                         }}
-                        transition={{ duration: 1.2, ease: "easeInOut" }}
+                        transition={{ duration: 1.2, times: [0, 0.3, 0.7, 1], ease: "easeInOut" }}
                         className="absolute inset-0 bg-black rounded-full mix-blend-multiply"
                         style={{ 
                           boxShadow: 'inset 0 0 60px 20px #f97316, 0 0 100px 40px #f97316, 0 0 140px 60px #ef4444' 
                         }}
                       />
 
-                      {/* Ash and Embers - Increased count and variety */}
                       <div className="absolute inset-0 overflow-hidden mix-blend-screen">
                         {[...Array(120)].map((_, i) => (
                           <motion.div
@@ -384,7 +533,6 @@ export default function App() {
                               x: (Math.random() - 0.5) * 220, 
                               scale: Math.random() * 3 + 0.5,
                               opacity: 1,
-                              // Mix of embers (orange/red), white-hot sparks, and ash (gray)
                               backgroundColor: i % 10 === 0 ? "#fff" : i % 4 === 0 ? "#4b5563" : i % 3 === 0 ? "#f97316" : "#ef4444" 
                             }}
                             animate={{ 
@@ -397,7 +545,7 @@ export default function App() {
                             transition={{ 
                               duration: 0.8 + Math.random() * 2, 
                               ease: "easeOut",
-                              delay: Math.random() * 1.5
+                              delay: 0.3 + Math.random() * 1.2
                             }}
                             className={`absolute bottom-[-10%] left-1/2 rounded-sm ${
                               i % 10 === 0 ? 'w-1 h-1 blur-[1px]' : 
@@ -407,24 +555,96 @@ export default function App() {
                         ))}
                       </div>
                       
-                      {/* Final Heat Flash and Fire Core */}
                       <motion.div
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ 
-                          opacity: [0, 1, 0.4, 0], 
-                          scale: [0.5, 2.5, 4, 6],
-                          backgroundColor: ["#f97316", "#fbbf24", "#ef4444", "#000000"]
+                          opacity: [0, 0, 1, 0.4, 0], 
+                          scale: [0.5, 0.5, 2.5, 4, 6],
+                          backgroundColor: ["#f97316", "#f97316", "#fbbf24", "#ef4444", "#000000"]
                         }}
-                        transition={{ duration: 1.2, times: [0, 0.3, 0.6, 1] }}
+                        transition={{ duration: 1.2, times: [0, 0.3, 0.5, 0.8, 1] }}
                         className="absolute inset-0 blur-3xl rounded-full mix-blend-overlay"
                       />
 
-                      {/* Intense glowing ring */}
                       <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: [0, 1, 0], scale: [0.8, 1.5, 2] }}
-                        transition={{ duration: 2, delay: 0.2 }}
+                        animate={{ opacity: [0, 0, 1, 0], scale: [0.8, 0.8, 1.5, 2] }}
+                        transition={{ duration: 2, times: [0, 0.4, 0.7, 1], delay: 0.2 }}
                         className="absolute inset-0 border-[20px] border-orange-500/30 blur-2xl rounded-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Flood Effect */}
+                  {isConsuming && destructionMethod === 'flood' && (
+                    <div className="absolute inset-0 pointer-events-none mix-blend-screen">
+                      {[...Array(60)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ 
+                            y: 100, 
+                            x: (Math.random() - 0.5) * 150, 
+                            scale: Math.random() * 4 + 1,
+                            opacity: 1,
+                            backgroundColor: i % 2 === 0 ? "#60a5fa" : "#2563eb" 
+                          }}
+                          animate={{ 
+                            y: -300, 
+                            x: (Math.random() - 0.5) * 300,
+                            scale: 0,
+                            opacity: 0,
+                            rotate: Math.random() * 360
+                          }}
+                          transition={{ 
+                            duration: 1 + Math.random(), 
+                            delay: 0.4 + Math.random() * 0.5,
+                            ease: "easeOut"
+                          }}
+                          className="absolute bottom-[-20%] left-1/2 w-6 h-6 rounded-full blur-xl"
+                        />
+                      ))}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: [0, 0, 0.8, 0], scale: [0.8, 0.8, 1.5, 2] }}
+                        transition={{ duration: 1.8, times: [0, 0.3, 0.8, 1] }}
+                        className="absolute inset-0 bg-blue-500/40 blur-3xl rounded-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Hammer (Shatter) Effect */}
+                  {isConsuming && destructionMethod === 'hammer' && (
+                    <div className="absolute inset-0 pointer-events-none mix-blend-overlay">
+                      {[...Array(40)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ 
+                            x: (Math.random() - 0.5) * 50,
+                            y: (Math.random() - 0.5) * 50,
+                            opacity: 1,
+                            scale: 1,
+                            backgroundColor: i % 2 === 0 ? "#111" : "#333",
+                            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)"
+                          }}
+                          animate={{ 
+                            x: (Math.random() - 0.5) * 400,
+                            y: (Math.random() - 0.5) * 400,
+                            opacity: 0,
+                            scale: 0,
+                            rotate: Math.random() * 720
+                          }}
+                          transition={{ 
+                            duration: 0.6 + Math.random() * 0.4, 
+                            delay: 0.4,
+                            ease: "easeOut" 
+                          }}
+                          className="absolute top-1/2 left-1/2 w-8 h-8"
+                        />
+                      ))}
+                      <motion.div
+                        animate={{ opacity: [0, 0, 1, 0], scale: [1, 1, 1.5, 2] }}
+                        transition={{ duration: 0.8, times: [0, 0.4, 0.6, 1] }}
+                        className="absolute inset-0 bg-white/40 blur-xl"
                       />
                     </div>
                   )}
@@ -490,7 +710,7 @@ export default function App() {
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
+        </motion.div>
 
         {/* Input Area */}
         <div className="w-full flex flex-col gap-4" id="input-container">
@@ -504,6 +724,32 @@ export default function App() {
               id="rant-textarea"
             />
             <div className="absolute bottom-4 right-4 flex items-center gap-2">
+              {selectedImage && (
+                <div className="flex bg-zinc-800/80 rounded-full p-1 border border-zinc-700/50 mr-4 gap-1">
+                  <button
+                    onClick={() => setDestructionMethod('burn')}
+                    className={`p-1.5 rounded-full transition-all ${destructionMethod === 'burn' ? 'bg-orange-500/20 text-orange-400' : 'text-zinc-500 hover:text-zinc-400'}`}
+                    title="Burn it"
+                  >
+                    <Flame size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDestructionMethod('flood')}
+                    className={`p-1.5 rounded-full transition-all ${destructionMethod === 'flood' ? 'bg-blue-500/20 text-blue-400' : 'text-zinc-500 hover:text-zinc-400'}`}
+                    title="Flush it"
+                  >
+                    <Droplets size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDestructionMethod('hammer')}
+                    className={`p-1.5 rounded-full transition-all ${destructionMethod === 'hammer' ? 'bg-zinc-500/20 text-zinc-300' : 'text-zinc-500 hover:text-zinc-400'}`}
+                    title="Shatter it"
+                  >
+                    <Gavel size={14} />
+                  </button>
+                </div>
+              )}
+
               <div className="flex bg-zinc-800/50 rounded-full p-0.5 border border-zinc-700/50 mr-1 text-[9px] font-mono">
                 <button
                   onClick={() => setSelectedLang('en-US')}
@@ -528,7 +774,7 @@ export default function App() {
                 title="Set a Target"
                 id="target-button"
               >
-                <UserPlus size={18} />
+                <ImagePlus size={18} />
               </button>
               <button
                 onClick={toggleListening}
@@ -604,8 +850,20 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        <footer className="text-[9px] sm:text-[10px] text-zinc-700 font-mono uppercase tracking-[0.2em] pointer-events-none text-center pb-4">
-          Consuming since 2026 • Silence is Gold
+        <footer className="flex flex-col items-center gap-4 pb-8">
+          <div className="flex items-center gap-6">
+            <a 
+              href="https://forms.gle/your-google-form-link" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[10px] text-purple-400/50 hover:text-purple-400 font-mono uppercase tracking-[0.2em] transition-colors border-b border-purple-900/30 pb-0.5"
+            >
+              Request a feature / Rate the void
+            </a>
+          </div>
+          <div className="text-[9px] sm:text-[10px] text-zinc-700 font-mono uppercase tracking-[0.2em] pointer-events-none text-center">
+            Consuming since 2026 • Silence is Gold
+          </div>
         </footer>
       </main>
     </div>
